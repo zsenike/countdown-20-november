@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Countdown">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Countdown bis zum 20. November 12:00 Uhr">
+    
+    <title>Countdown 20. November</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+    <link rel="apple-touch-icon" href="icon-192.svg">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            overscroll-behavior: none;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Glasklarer Effekt (Glassmorphism) */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Sanfte Glüh-Effekte */
+        .glow-indigo {
+            box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.25);
+        }
+        
+        .glow-emerald {
+            box-shadow: 0 0 40px 0px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Pulsieren für Sekundentakt */
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.98); }
+        }
+
+        .pulse-subtle {
+            animation: subtle-pulse 1s infinite ease-in-out;
+        }
+
+        /* Safe area for notches / status bar */
+        .safe-top {
+            padding-top: env(safe-area-inset-top);
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col justify-between items-center p-4 sm:p-6 overflow-x-hidden selection:bg-indigo-500 selection:text-white safe-top safe-bottom">
+
+    <!-- Hintergrund Dezent-Lichter -->
+    <div class="fixed top-1/4 -left-20 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed bottom-1/4 -right-20 w-72 h-72 bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Header Section -->
+    <header class="w-full max-w-md flex justify-between items-center pt-2 z-10">
+        <div class="flex items-center gap-2 text-indigo-400 font-semibold tracking-wide text-sm uppercase">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+            <span>Countdown App</span>
+        </div>
+        <div id="status-badge" class="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Aktiv
+        </div>
+    </header>
+
+    <!-- Hauptinhalt: Countdown Display -->
+    <main class="w-full max-w-md my-auto py-6 flex flex-col items-center z-10">
+        
+        <!-- Titel & Ziel-Datum -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+                Countdown
+            </h1>
+            <p class="text-slate-400 text-sm sm:text-base flex items-center justify-center gap-1.5 font-medium">
+                <i data-lucide="calendar" class="w-4 h-4 text-indigo-400"></i>
+                20. November &bull; 12:00 Uhr
+            </p>
+        </div>
+
+        <!-- Normaler Countdown State -->
+        <div id="countdown-container" class="w-full grid grid-cols-2 gap-3.5 sm:gap-4">
+            
+            <!-- Tage -->
+            <div class="glass-card glow-indigo rounded-3xl p-4 sm:p-5 flex flex-col items-center justify-center relative overflow-hidden group">
+                <div class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1">Tage</div>
+                <div id="days" class="mono text-4xl sm:text-5xl font-black text-white tracking-tight">00</div>
+                <div class="absolute bottom-0 left-0 h-1 bg-indigo-500/40 w-full"></div>
+            </div>
+
+            <!-- Stunden -->
+            <div class="glass-card glow-indigo rounded-3xl p-4 sm:p-5 flex flex-col items-center justify-center relative overflow-hidden group">
+                <div class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1">Stunden</div>
+                <div id="hours" class="mono text-4xl sm:text-5xl font-black text-white tracking-tight">00</div>
+                <div class="absolute bottom-0 left-0 h-1 bg-indigo-500/40 w-full"></div>
+            </div>
+
+            <!-- Minuten -->
+            <div class="glass-card glow-indigo rounded-3xl p-4 sm:p-5 flex flex-col items-center justify-center relative overflow-hidden group">
+                <div class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1">Minuten</div>
+                <div id="minutes" class="mono text-4xl sm:text-5xl font-black text-white tracking-tight">00</div>
+                <div class="absolute bottom-0 left-0 h-1 bg-indigo-500/40 w-full"></div>
+            </div>
+
+            <!-- Sekunden -->
+            <div class="glass-card glow-indigo rounded-3xl p-4 sm:p-5 flex flex-col items-center justify-center relative overflow-hidden group border-indigo-500/30">
+                <div class="text-xs uppercase tracking-widest text-indigo-400 font-semibold mb-1">Sekunden</div>
+                <div id="seconds" class="mono text-4xl sm:text-5xl font-black text-indigo-400 tracking-tight">00</div>
+                <div class="absolute bottom-0 left-0 h-1 bg-indigo-500 w-full pulse-subtle"></div>
+            </div>
+            
+        </div>
+
+        <!-- Abgelaufen State (Standardmäßig versteckt) -->
+        <div id="finished-container" class="hidden w-full glass-card glow-emerald rounded-3xl p-8 flex flex-col items-center text-center border-emerald-500/30">
+            <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 border border-emerald-500/30">
+                <i data-lucide="party-popper" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-3xl font-black text-white mb-2">Ziel erreicht!</h2>
+            <p class="text-emerald-400 font-semibold text-lg mb-1">Es ist der 20. November, 12:00 Uhr.</p>
+            <p class="text-slate-400 text-sm">Der Countdown ist auf Null abgelaufen.</p>
+            
+            <button onclick="triggerConfetti()" class="mt-6 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm transition-all shadow-lg active:scale-95 flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                Konfetti werfen
+            </button>
+        </div>
+
+        <!-- Aktuelle Uhrzeit Infobox -->
+        <div class="mt-8 w-full glass-card rounded-2xl py-3 px-4 flex items-center justify-between text-xs text-slate-400 border-white/5">
+            <span class="flex items-center gap-1.5">
+                <i data-lucide="watch" class="w-3.5 h-3.5 text-slate-500"></i>
+                Aktuelle Uhrzeit:
+            </span>
+            <span id="current-time" class="mono font-semibold text-slate-200">--:--:-- Uhr</span>
+        </div>
+
+    </main>
+
+    <!-- Footer mit Hilfetext -->
+    <footer class="w-full max-w-md text-center py-2 z-10">
+        <p class="text-xs text-slate-500" id="install-tip">
+            Tipp: Im Chrome-Menü „Zum Startbildschirm hinzufügen“ wählen.
+        </p>
+    </footer>
+
+    <!-- JavaScript Logik -->
+    <script>
+        // Icons initialisieren
+        lucide.createIcons();
+
+        // Elemente abgreifen
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        const currentTimeEl = document.getElementById('current-time');
+        const countdownContainer = document.getElementById('countdown-container');
+        const finishedContainer = document.getElementById('finished-container');
+        const statusBadge = document.getElementById('status-badge');
+
+        let confettiTriggered = false;
+
+        // Ziel-Datum ermitteln: 20. November 12:00:00 Uhr
+        function getTargetDate() {
+            const now = new Date();
+            let year = now.getFullYear();
+            
+            // Ziel-Datum erstelle (Monat ist 0-indiziert: 10 = November)
+            let target = new Date(year, 10, 20, 12, 0, 0);
+
+            // Falls das Datum dieses Jahr bereits in der Vergangenheit liegt, nimm nächstes Jahr
+            if (now.getTime() > target.getTime()) {
+                target = new Date(year + 1, 10, 20, 12, 0, 0);
+            }
+            
+            return target;
+        }
+
+        const targetDate = getTargetDate();
+
+        // Zahl mit führender Null formatieren
+        function formatTime(num) {
+            return num < 10 ? `0${num}` : num;
+        }
+
+        // Konfetti Effekte
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6']
+                });
+            }
+        }
+
+        // Haupt-Update Funktion für Countdown und Uhrzeit
+        function updateTimer() {
+            const now = new Date();
+            
+            // Aktuelle Zeit in der Fußzeile aktualisieren
+            const hoursNow = formatTime(now.getHours());
+            const minsNow = formatTime(now.getMinutes());
+            const secsNow = formatTime(now.getSeconds());
+            currentTimeEl.textContent = `${hoursNow}:${minsNow}:${secsNow} Uhr`;
+
+            // Verbleibende Zeit berechnen
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                // Countdown beendet
+                countdownContainer.classList.add('hidden');
+                finishedContainer.classList.remove('hidden');
+                
+                // Status Badge anpassen
+                statusBadge.className = "px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5";
+                statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Abgeschlossen`;
+
+                // Einmalig Konfetti automatisch abfeuern
+                if (!confettiTriggered) {
+                    triggerConfetti();
+                    confettiTriggered = true;
+                }
+            } else {
+                // Countdown läuft noch
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const m = Math.floor((diff / 1000 / 60) % 60);
+                const s = Math.floor((diff / 1000) % 60);
+
+                daysEl.textContent = formatTime(d);
+                hoursEl.textContent = formatTime(h);
+                minutesEl.textContent = formatTime(m);
+                secondsEl.textContent = formatTime(s);
+            }
+        }
+
+        // Service Worker registrieren (für Offline & Install)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered', reg.scope))
+                    .catch(err => console.log('SW registration failed', err));
+            });
+        }
+
+        // Timer starten
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>
